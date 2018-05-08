@@ -134,19 +134,47 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
         
     }
     
+    func createFloor(anchor: ARPlaneAnchor) -> SCNNode {
+        let floor = SCNNode()
+        floor.name = "floor"
+        floor.eulerAngles = SCNVector3(90.degreesToRadians,0,0)
+        floor.geometry = SCNPlane(width: CGFloat(anchor.extent.x), height: CGFloat(anchor.extent.z))
+        floor.geometry?.firstMaterial?.diffuse.contents = #imageLiteral(resourceName: "Material")
+        floor.geometry?.firstMaterial?.isDoubleSided = true
+        // set floor position
+        floor.position = SCNVector3(anchor.center.x, anchor.center.y, anchor.center.z)
+        return floor
+    }
+    
+    func removeNode(named: String) {
+        arView.scene.rootNode.enumerateChildNodes { (node, _) in
+            if node.name == named {
+                node.removeFromParentNode()
+            }
+        }
+        
+    }
+    
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
         guard let anchorPlane = anchor as? ARPlaneAnchor else { return }
         print("New Plane Anchor found at extent:", anchorPlane.extent)
+        let floor = createFloor(anchor: anchorPlane)
+        node.addChildNode(floor)
     }
     
     func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
         guard let anchorPlane = anchor as? ARPlaneAnchor else { return }
         print("Plane Anchor updated with extent:", anchorPlane.extent)
+        removeNode(named: "floor")
+        let floor = createFloor(anchor: anchorPlane)
+        node.addChildNode(floor)
+        
     }
     
     func renderer(_ renderer: SCNSceneRenderer, didRemove node: SCNNode, for anchor: ARAnchor) {
         guard let anchorPlane = anchor as? ARPlaneAnchor else { return }
         print("Plane Anchor removed with extent:", anchorPlane.extent)
+        removeNode(named: "floor")
     }
     
     

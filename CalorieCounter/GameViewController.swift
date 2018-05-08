@@ -9,7 +9,7 @@
 import ARKit
 import LBTAComponents
 
-class GameViewController: UIViewController {
+class GameViewController: UIViewController, ARSCNViewDelegate {
   
   let arView: ARSCNView = {
     let view = ARSCNView()
@@ -78,9 +78,11 @@ class GameViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     setupViews()
+    configuration.planeDetection = .horizontal
     arView.session.run(configuration, options: [])
     arView.debugOptions = [ARSCNDebugOptions.showFeaturePoints, ARSCNDebugOptions.showWorldOrigin]
     arView.autoenablesDefaultLighting = true
+    arView.delegate = self
   }
     
     override var prefersStatusBarHidden: Bool {
@@ -99,7 +101,7 @@ class GameViewController: UIViewController {
         
         view.addSubview(resetButton)
         resetButton.anchor(nil, left: nil, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: nil, topConstant: 0, leftConstant: 0, bottomConstant: 12, rightConstant: 0, widthConstant: resetButtonWidth, heightConstant: resetButtonWidth)
-        resetButton.anchorCenterYToSuperview()
+        resetButton.anchorCenterXToSuperview()
         
     }
     
@@ -132,11 +134,20 @@ class GameViewController: UIViewController {
         
     }
     
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        guard let anchorPlane = anchor as? ARPlaneAnchor else { return }
+        print("New Plane Anchor found at extent:", anchorPlane.extent)
+    }
     
+    func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
+        guard let anchorPlane = anchor as? ARPlaneAnchor else { return }
+        print("Plane Anchor updated with extent:", anchorPlane.extent)
+    }
     
-    
-    
-    
+    func renderer(_ renderer: SCNSceneRenderer, didRemove node: SCNNode, for anchor: ARAnchor) {
+        guard let anchorPlane = anchor as? ARPlaneAnchor else { return }
+        print("Plane Anchor removed with extent:", anchorPlane.extent)
+    }
     
     
     

@@ -12,8 +12,9 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
     var endingPositionNode: SCNNode?
     let cameraRelativePosition = SCNVector3(0,0,-0.1)
     
-    var distances: [Float]?
+    var distances = [Float]()
     var calorieCount = Float(0.0)
+    
     
     // MARK: Buttons
     
@@ -33,16 +34,17 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
     
     @objc func handlePlusButtonTapped() {
         print("Tapped on plus button")
+        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        arView.addGestureRecognizer(tapGestureRecognizer)
         addDimensionalDistance()
     }
     
     func addDimensionalDistance() {
+        distanceLabel.text = ""
         startingPositionNode?.removeFromParentNode()
         endingPositionNode?.removeFromParentNode()
         startingPositionNode = nil
         endingPositionNode = nil
-        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-        arView.addGestureRecognizer(tapGestureRecognizer)
     }
     
     @objc func handleTap(sender: UITapGestureRecognizer) {
@@ -57,6 +59,12 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
             sphere.geometry?.firstMaterial?.diffuse.contents = UIColor.red
             Service.addChildNode(sphere, toNode: arView.scene.rootNode, inView: arView, cameraRelativePosition: cameraRelativePosition)
             endingPositionNode = sphere
+            guard let xDistance = Service.distance3(fromStartingPositionNode: startingPositionNode, onView: arView, cameraRelativePosition: cameraRelativePosition)?.x else {return}
+            guard let yDistance = Service.distance3(fromStartingPositionNode: startingPositionNode, onView: arView, cameraRelativePosition: cameraRelativePosition)?.y else {return}
+            guard let zDistance = Service.distance3(fromStartingPositionNode: startingPositionNode, onView: arView, cameraRelativePosition: cameraRelativePosition)?.z else {return}
+            distanceLabel.text = String(format: "Distance: %.2f", Service.distance(x: xDistance, y: yDistance, z: zDistance)) + "m"
+            distances.append( Service.distance(x: xDistance, y: yDistance, z: zDistance) )
+            //print(distances)
         } else if startingPositionNode == nil && endingPositionNode == nil {
             let sphere = SCNNode(geometry: SCNSphere(radius: 0.002))
             sphere.geometry?.firstMaterial?.diffuse.contents = UIColor.purple
@@ -81,12 +89,8 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
     
     @objc func handleMinusButtonTapped() {
         print("Tapped on minus button")
-        removeDimensionalDistance()
-    }
-    
-    func removeDimensionalDistance() {
-        print(distances!)
-        distances?.remove(at: (distances?.endIndex)!)
+        print(distances)
+        distances.remove(at: distances.endIndex-1)
     }
     
     // Reset
@@ -133,8 +137,8 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
     }
     
     func calculateCalories() {
-        print(distances!)
-        calorieCount = 2 * (distances?.reduce(1, *))!
+        print(distances)
+        calorieCount = 2 * (distances.reduce(1, *))
         calories.text = "Calories: " + String(format: "Distance: %.2f", calorieCount)
     }
 
@@ -151,7 +155,7 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 14)
         label.textColor = UIColor.black
-        label.text = "Type:"
+        label.text = "Type: Cake"
         return label
     }()
     
@@ -243,21 +247,8 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
     
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         DispatchQueue.main.async {
-            self.measure()
+            self.tracking.text = "Tracking:" + self.getTrackigDescription()
         }
-    }
-    
-    func measure() {
-        type.text = "Type: Cake"
-        tracking.text = "Tracking:" + getTrackigDescription()
-        if startingPositionNode != nil && endingPositionNode != nil {
-            return
-        }
-        guard let xDistance = Service.distance3(fromStartingPositionNode: startingPositionNode, onView: arView, cameraRelativePosition: cameraRelativePosition)?.x else {return}
-        guard let yDistance = Service.distance3(fromStartingPositionNode: startingPositionNode, onView: arView, cameraRelativePosition: cameraRelativePosition)?.y else {return}
-        guard let zDistance = Service.distance3(fromStartingPositionNode: startingPositionNode, onView: arView, cameraRelativePosition: cameraRelativePosition)?.z else {return}
-        distanceLabel.text = String(format: "Distance: %.2f", Service.distance(x: xDistance, y: yDistance, z: zDistance)) + "m"
-        distances?.append( Service.distance(x: xDistance, y: yDistance, z: zDistance) )
     }
     
     var trackingState: ARCamera.TrackingState!

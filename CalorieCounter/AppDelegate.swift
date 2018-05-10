@@ -13,7 +13,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
   var window: UIWindow?
 
-
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
     // Override point for customization after application launch.
     window = UIWindow()
@@ -22,7 +21,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     let gameViewController = GameViewController()
     window?.rootViewController = gameViewController
     UIApplication.shared.isIdleTimerDisabled = true
-    
     return true
   }
 

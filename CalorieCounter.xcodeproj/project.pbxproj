@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0410606F20A161890089AE4A /* Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0410606E20A161890089AE4A /* Extension.swift */; };
+		041C9CA820A1858B0037EC11 /* Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041C9CA720A1858B0037EC11 /* Service.swift */; };
 		C97DE8C52004B1E1002F0E38 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97DE8C42004B1E1002F0E38 /* AppDelegate.swift */; };
 		C97DE8CC2004B1E1002F0E38 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C97DE8CB2004B1E1002F0E38 /* Assets.xcassets */; };
 		C97DE8CF2004B1E1002F0E38 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C97DE8CD2004B1E1002F0E38 /* LaunchScreen.storyboard */; };
@@ -17,6 +18,7 @@
 
 /* Begin PBXFileReference section */
 		0410606E20A161890089AE4A /* Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extension.swift; sourceTree = "<group>"; };
+		041C9CA720A1858B0037EC11 /* Service.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Service.swift; sourceTree = "<group>"; };
 		07871AAD57E57084BB276BC5 /* Pods-CalorieCounter.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CalorieCounter.release.xcconfig"; path = "Pods/Target Support Files/Pods-CalorieCounter/Pods-CalorieCounter.release.xcconfig"; sourceTree = "<group>"; };
 		C97DE8C12004B1E1002F0E38 /* CalorieCounter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CalorieCounter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C97DE8C42004B1E1002F0E38 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -75,6 +77,7 @@
 				C97DE8CD2004B1E1002F0E38 /* LaunchScreen.storyboard */,
 				C97DE8D02004B1E1002F0E38 /* Info.plist */,
 				C97DE8D62004B326002F0E38 /* GameViewController.swift */,
+				041C9CA720A1858B0037EC11 /* Service.swift */,
 				0410606E20A161890089AE4A /* Extension.swift */,
 			);
 			path = CalorieCounter;
@@ -217,6 +220,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0410606F20A161890089AE4A /* Extension.swift in Sources */,
+				041C9CA820A1858B0037EC11 /* Service.swift in Sources */,
 				C97DE8D72004B326002F0E38 /* GameViewController.swift in Sources */,
 				C97DE8C52004B1E1002F0E38 /* AppDelegate.swift in Sources */,
 			);

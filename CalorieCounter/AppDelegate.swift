@@ -1,9 +1,8 @@
 //
 //  AppDelegate.swift
-//  ARMagic
 //
-//  Created by Alex Nagy on 09/01/2018.
-//  Copyright © 2018 Alex Nagy. All rights reserved.
+//  Created by Sheng Wu on 01/05/2018.
+//  Copyright © 2018 Sheng Wu. All rights reserved.
 //
 
 import UIKit
@@ -15,12 +14,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
     // Override point for customization after application launch.
-    window = UIWindow()
-    window?.makeKeyAndVisible()
-    
-    let gameViewController = GameViewController()
-    window?.rootViewController = gameViewController
-    UIApplication.shared.isIdleTimerDisabled = true
+//    window = UIWindow()
+//    window?.makeKeyAndVisible()
+//
+//    let gameViewController = GameViewController()
+//    window?.rootViewController = gameViewController
+//    UIApplication.shared.isIdleTimerDisabled = true
     return true
   }
 

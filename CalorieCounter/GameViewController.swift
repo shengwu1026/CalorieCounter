@@ -1,7 +1,7 @@
 import ARKit
 import LBTAComponents
 
-class GameViewController: UIViewController, ARSCNViewDelegate {
+class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationControllerDelegate {
     
     let arView: ARSCNView = {
         let view = ARSCNView()
@@ -10,11 +10,20 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
     
     var startingPositionNode: SCNNode?
     var endingPositionNode: SCNNode?
-    let cameraRelativePosition = SCNVector3(0,0,-0.1)
     
     var distances = [Float]()
     var calorieCount = Float(0.0)
+    var state = "Not Ready!"
+    var food: Food?
+    var type = String()
+    var caloriesPerUnit = Float()
     
+    if food == nil {
+    print("Food is not set!")
+    }
+    
+    type = food!.type
+    caloriesPerUnit = food!.calories
     
     // MARK: Buttons
     
@@ -34,13 +43,22 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
     
     @objc func handlePlusButtonTapped() {
         print("Tapped on plus button")
-        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-        arView.addGestureRecognizer(tapGestureRecognizer)
-        addDimensionalDistance()
+        if state == "Ready!" {
+            statusLabel.text = "State: Ready!"
+            let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+            arView.addGestureRecognizer(tapGestureRecognizer)
+            addDimensionalDistance()
+        } else {
+            let noPlaneAlert = UIAlertController(title: "Error", message: "No plane has been detected! Please wait until State is Ready!", preferredStyle: UIAlertControllerStyle.alert)
+            noPlaneAlert.addAction(UIAlertAction(title: "OK", style: .cancel) { (action:UIAlertAction!) in
+                print("OK")
+            })
+            self.present(noPlaneAlert, animated: true)
+        }
     }
     
     func addDimensionalDistance() {
-        distanceLabel.text = ""
+        distanceLabel.text = "Distance:"
         startingPositionNode?.removeFromParentNode()
         endingPositionNode?.removeFromParentNode()
         startingPositionNode = nil
@@ -48,28 +66,35 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
     }
     
     @objc func handleTap(sender: UITapGestureRecognizer) {
-        if startingPositionNode != nil && endingPositionNode != nil {
-            let addDimensionalDistanceAlert = UIAlertController(title: "Error", message: "You have tapped twice! Please click on Add Button again!", preferredStyle: UIAlertControllerStyle.alert)
-            addDimensionalDistanceAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { (action:UIAlertAction!) in
-                print("Cancel")
-            })
-            self.present(addDimensionalDistanceAlert, animated: true)
-        } else if startingPositionNode != nil && endingPositionNode == nil {
-            let sphere = SCNNode(geometry: SCNSphere(radius: 0.002))
-            sphere.geometry?.firstMaterial?.diffuse.contents = UIColor.red
-            Service.addChildNode(sphere, toNode: arView.scene.rootNode, inView: arView, cameraRelativePosition: cameraRelativePosition)
-            endingPositionNode = sphere
-            guard let xDistance = Service.distance3(fromStartingPositionNode: startingPositionNode, onView: arView, cameraRelativePosition: cameraRelativePosition)?.x else {return}
-            guard let yDistance = Service.distance3(fromStartingPositionNode: startingPositionNode, onView: arView, cameraRelativePosition: cameraRelativePosition)?.y else {return}
-            guard let zDistance = Service.distance3(fromStartingPositionNode: startingPositionNode, onView: arView, cameraRelativePosition: cameraRelativePosition)?.z else {return}
-            distanceLabel.text = String(format: "Distance: %.2f", Service.distance(x: xDistance, y: yDistance, z: zDistance)) + "m"
-            distances.append( Service.distance(x: xDistance, y: yDistance, z: zDistance) )
-            //print(distances)
-        } else if startingPositionNode == nil && endingPositionNode == nil {
-            let sphere = SCNNode(geometry: SCNSphere(radius: 0.002))
-            sphere.geometry?.firstMaterial?.diffuse.contents = UIColor.purple
-            Service.addChildNode(sphere, toNode: arView.scene.rootNode, inView: arView, cameraRelativePosition: cameraRelativePosition)
-            startingPositionNode = sphere
+        let tapLocation = sender.location(in: arView)
+        let hitTestResults = arView.hitTest(tapLocation, types: .featurePoint)
+        if let result = hitTestResults.first {
+            let cameraRelativePosition = SCNVector3.positionFrom(matrix: result.worldTransform)
+            if startingPositionNode != nil && endingPositionNode != nil {
+                let addDimensionalDistanceAlert = UIAlertController(title: "Error", message: "You have tapped twice! Please click on Add Button again!", preferredStyle: UIAlertControllerStyle.alert)
+                addDimensionalDistanceAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { (action:UIAlertAction!) in
+                    print("Cancel")
+                })
+                self.present(addDimensionalDistanceAlert, animated: true)
+            } else if startingPositionNode != nil && endingPositionNode == nil {
+                let sphere = SCNNode(geometry: SCNSphere(radius: 0.002))
+                sphere.geometry?.firstMaterial?.diffuse.contents = UIColor.red
+                //sphere.position = SCNVector3(x: 0, y: 0, z: -0.1)
+                Service.addChildNode(sphere, toNode: arView.scene.rootNode, inView: arView, cameraRelativePosition: cameraRelativePosition)
+                endingPositionNode = sphere
+                guard let xDistance = Service.distance3(fromStartingPositionNode: startingPositionNode, onView: arView, cameraRelativePosition: cameraRelativePosition)?.x else {return}
+                guard let yDistance = Service.distance3(fromStartingPositionNode: startingPositionNode, onView: arView, cameraRelativePosition: cameraRelativePosition)?.y else {return}
+                guard let zDistance = Service.distance3(fromStartingPositionNode: startingPositionNode, onView: arView, cameraRelativePosition: cameraRelativePosition)?.z else {return}
+                distanceLabel.text = String(format: "Distance: %.2f", Service.distance(x: xDistance, y: yDistance, z: zDistance)) + "m"
+                distances.append( Service.distance(x: xDistance, y: yDistance, z: zDistance) )
+                //print(distances)
+            } else if startingPositionNode == nil && endingPositionNode == nil {
+                let sphere = SCNNode(geometry: SCNSphere(radius: 0.002))
+                sphere.geometry?.firstMaterial?.diffuse.contents = UIColor.purple
+                //sphere.position = SCNVector3(x: 0, y: 0, z: -0.1)
+                Service.addChildNode(sphere, toNode: arView.scene.rootNode, inView: arView, cameraRelativePosition: cameraRelativePosition)
+                startingPositionNode = sphere
+            }
         }
     }
     
@@ -89,8 +114,16 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
     
     @objc func handleMinusButtonTapped() {
         print("Tapped on minus button")
-        print(distances)
-        distances.remove(at: distances.endIndex-1)
+        //print(distances)
+        if distances.count == 0 {
+            let nilDistanceAlert = UIAlertController(title: "Error", message: "No size has been measured! Please add a dimensional size!", preferredStyle: UIAlertControllerStyle.alert)
+            nilDistanceAlert.addAction(UIAlertAction(title: "OK", style: .cancel) { (action:UIAlertAction!) in
+                print("OK")
+            })
+            self.present(nilDistanceAlert, animated: true)
+        } else {
+            distances.remove(at: distances.endIndex-1)
+        }
     }
     
     // Reset
@@ -137,41 +170,65 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
     }
     
     func calculateCalories() {
-        print(distances)
-        calorieCount = 2 * (distances.reduce(1, *))
-        calories.text = "Calories: " + String(format: "Distance: %.2f", calorieCount)
+        if distances.count == 0 {
+            let nilDistanceAlert = UIAlertController(title: "Error", message: "No size has been measured! Please add a dimensional size!", preferredStyle: UIAlertControllerStyle.alert)
+            nilDistanceAlert.addAction(UIAlertAction(title: "OK", style: .cancel) { (action:UIAlertAction!) in
+                print("OK")
+            })
+            self.present(nilDistanceAlert, animated: true)
+        } else if distances.count > 3 {
+            let maxDimensionExtendAlert = UIAlertController(title: "Error", message: "Too many dimensional sizes! Maximum three!", preferredStyle: UIAlertControllerStyle.alert)
+            maxDimensionExtendAlert.addAction(UIAlertAction(title: "OK", style: .cancel) { (action:UIAlertAction!) in
+                print("OK")
+            })
+            self.present(maxDimensionExtendAlert, animated: true)
+        } else {
+            print(distances)
+            calorieCount = distances.reduce(1, { x, y in x * y})
+            print(calorieCount)
+            calories.text = String(format: "Calories: %.2f", calorieCount)
+            distances.removeAll()
+        }
     }
 
     // MARK: Labels
-    let distanceLabel: UILabel = {
+    let typeLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.boldSystemFont(ofSize: 14)
+        label.font = UIFont.boldSystemFont(ofSize: 20)
         label.textColor = UIColor.black
-        label.text = "Distance:"
-        return label
-    }()
-    
-    let type: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.boldSystemFont(ofSize: 14)
-        label.textColor = UIColor.black
-        label.text = "Type: Cake"
-        return label
-    }()
-    
-    let calories: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.boldSystemFont(ofSize: 14)
-        label.textColor = UIColor.black
-        label.text = "Calories:"
+        label.text = "Type: "
         return label
     }()
     
     let tracking: UILabel = {
         let label = UILabel()
-        label.font = UIFont.boldSystemFont(ofSize: 14)
+        label.font = UIFont.boldSystemFont(ofSize: 20)
         label.textColor = UIColor.black
         label.text = "Tracking State:"
+        return label
+    }()
+
+    let statusLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textColor = UIColor.black
+        label.text = "Status: Not Ready"
+        return label
+    }()
+    
+    let distanceLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textColor = UIColor.black
+        label.text = "Distance:"
+        return label
+    }()
+    
+    let calories: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textColor = UIColor.black
+        label.text = "Calories:"
         return label
     }()
     
@@ -199,17 +256,20 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
         view.addSubview(resetButton)
         resetButton.anchor(nil, left: nil, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.safeAreaLayoutGuide.rightAnchor, topConstant: 0, leftConstant: 0, bottomConstant: 24, rightConstant: 24, widthConstant: resetButtonWidth, heightConstant: resetButtonWidth)
         
-        view.addSubview(distanceLabel)
-        distanceLabel.anchor(view.safeAreaLayoutGuide.topAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 24, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 24)
-        
-        view.addSubview(type)
-        type.anchor(distanceLabel.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 24)
-        
-        view.addSubview(calories)
-        calories.anchor(type.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 24)
+        view.addSubview(typeLabel)
+        typeLabel.anchor(view.safeAreaLayoutGuide.topAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 24, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
         
         view.addSubview(tracking)
-        tracking.anchor(calories.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 24)
+        tracking.anchor(typeLabel.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
+        
+        view.addSubview(statusLabel)
+        statusLabel.anchor(tracking.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
+        
+        view.addSubview(distanceLabel)
+        distanceLabel.anchor(statusLabel.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
+        
+        view.addSubview(calories)
+        calories.anchor(distanceLabel.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
         
         view.addSubview(centerImageView)
         centerImageView.anchorCenterSuperview()
@@ -239,7 +299,7 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
         floor.eulerAngles = SCNVector3(90.degreesToRadians,0,0)
         floor.geometry = SCNPlane(width: CGFloat(anchor.extent.x), height: CGFloat(anchor.extent.z))
         floor.geometry?.firstMaterial?.diffuse.contents = #imageLiteral(resourceName: "Material")
-        floor.opacity = 0.10
+        floor.opacity = 0.01
         floor.geometry?.firstMaterial?.isDoubleSided = true
         floor.position = SCNVector3(anchor.center.x, anchor.center.y, anchor.center.z)
         return floor
@@ -276,14 +336,6 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
         return description
     }
     
-    func removeNode(named: String) {
-        arView.scene.rootNode.enumerateChildNodes { (node, _) in
-            if node.name == named {
-                node.removeFromParentNode()
-            }
-        }
-    }
-    
     func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
         trackingState = camera.trackingState
     }
@@ -293,6 +345,15 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
         print("New Plane Anchor found at extent:", anchorPlane.extent)
         let floor = createFloor(anchor: anchorPlane)
         node.addChildNode(floor)
+        state = "Ready!"
+    }
+    
+    func removeNode(named: String) {
+        arView.scene.rootNode.enumerateChildNodes { (node, _) in
+            if node.name == named {
+                node.removeFromParentNode()
+            }
+        }
     }
     
     func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
@@ -308,5 +369,28 @@ class GameViewController: UIViewController, ARSCNViewDelegate {
         guard let anchorPlane = anchor as? ARPlaneAnchor else { return }
         print("Plane Anchor removed with extent:", anchorPlane.extent)
         removeNode(named: "floor")
+        state = "Not Ready!"
+    }
+    
+    @IBAction func cancel(_ sender: UIBarButtonItem) {
+        // Depending on style of presentation (modal or push presentation), this view controller needs to be dismissed in two different ways.
+        let isPresentingInSizeMeasurementMode = presentingViewController is UINavigationController
+        
+        if isPresentingInSizeMeasurementMode {
+            dismiss(animated: true, completion: nil)
+        }
+        else if let owningNavigationController = navigationController {
+            owningNavigationController.popViewController(animated: true)
+        }
+        else {
+            fatalError("The SizeMeasurementController is not inside a navigation controller.")
+        }
+    }
+}
+
+extension SCNVector3 {
+    static func positionFrom(matrix: matrix_float4x4) -> SCNVector3 {
+        let column = matrix.columns.3
+        return SCNVector3(column.x, column.y, column.z)
     }
 }

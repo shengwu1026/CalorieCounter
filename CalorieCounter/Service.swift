@@ -3,7 +3,7 @@
 //  CalorieCounter
 //
 //  Created by Sheng Wu on 8/5/18.
-//  Copyright © 2018 Alex Nagy. All rights reserved.
+//  Copyright © 2018 Sheng Wu. All rights reserved.
 //
 
 import UIKit

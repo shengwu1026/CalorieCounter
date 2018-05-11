@@ -14,16 +14,10 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
     var distances = [Float]()
     var calorieCount = Float(0.0)
     var state = "Not Ready!"
+    
     var food: Food?
-    var type = String()
-    var caloriesPerUnit = Float()
-    
-    if food == nil {
-    print("Food is not set!")
-    }
-    
-    type = food!.type
-    caloriesPerUnit = food!.calories
+    var type: String?
+    var caloriesPerUnit: Double?
     
     // MARK: Buttons
     
@@ -274,6 +268,13 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
         view.addSubview(centerImageView)
         centerImageView.anchorCenterSuperview()
         centerImageView.anchor(nil, left: nil, bottom: nil, right: nil, topConstant: 0, leftConstant: 0, bottomConstant: 0, rightConstant: 0, widthConstant: ScreenSize.width * 0.05, heightConstant: ScreenSize.width * 0.05)
+        
+        if food == nil {
+            print("Food is not set!")
+        } else {
+            typeLabel.text = String(food!.type)
+            caloriesPerUnit = food!.calories
+        } 
     }
     
     // MARK: AR Session

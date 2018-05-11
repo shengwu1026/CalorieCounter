@@ -29,6 +29,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         picker.sourceType = .savedPhotosAlbum
         present(picker, animated: true)
     }
+    
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        print("1")
+    }
      
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         picker.dismiss(animated: true)
@@ -73,10 +79,16 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 }))
                 self.present(alert, animated: true, completion: nil)
                 return false
-            }
-            else {
+            } else if caloriesOfFood.keys.contains((food?.type)!) {
                 os_log("Food is set", log: OSLog.default, type: .debug)
                 return true
+            } else {
+                let notInDBAlert = UIAlertController(title: "Alert", message: "The information has not been set for this type!", preferredStyle: .alert)
+                notInDBAlert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Default action"), style: .default, handler: { _ in
+                    NSLog("The \"OK\" alert occured.")
+                }))
+                self.present(notInDBAlert, animated: true, completion: nil)
+                return false
             }
         }
         // by default, transition

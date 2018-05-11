@@ -87,10 +87,10 @@
             </objects>
             <point key="canvasLocation" x="1190" y="139"/>
         </scene>
-        <!--Game View Controller-->
+        <!--GameViewController-->
         <scene sceneID="aSW-gR-kDJ">
             <objects>
-                <viewController id="j5u-Db-1Cj" customClass="GameViewController" customModule="CalorieCounter" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="j5u-Db-1Cj" userLabel="GameViewController" customClass="GameViewController" customModule="CalorieCounter" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="VNp-gl-g3e"/>
                         <viewControllerLayoutGuide type="bottom" id="u2M-XO-ybH"/>

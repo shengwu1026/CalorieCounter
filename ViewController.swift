@@ -29,12 +29,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         picker.sourceType = .savedPhotosAlbum
         present(picker, animated: true)
     }
-    
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        print("1")
-    }
      
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         picker.dismiss(animated: true)

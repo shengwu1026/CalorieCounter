@@ -7,7 +7,7 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
         let view = ARSCNView()
         return view
     }()
-    
+
     var startingPositionNode: SCNNode?
     var endingPositionNode: SCNNode?
     
@@ -20,7 +20,20 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
     var caloriesPerUnit: Double?
     
     // MARK: Buttons
-    
+    @objc func handleCancelButtonTapped() {
+        let isPresentingInSizeMeasurementMode = presentingViewController is UINavigationController
+        
+        if isPresentingInSizeMeasurementMode {
+            dismiss(animated: true, completion: nil)
+        }
+        else if let owningNavigationController = navigationController {
+            owningNavigationController.popViewController(animated: true)
+        }
+        else {
+            fatalError("The SizeMeasurementController is not inside a navigation controller.")
+        }
+    }
+
     // Plus: add a dimension size
     let plusButtonWidth = ScreenSize.width * 0.1
     lazy var plusButton: UIButton = {
@@ -38,7 +51,6 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
     @objc func handlePlusButtonTapped() {
         print("Tapped on plus button")
         if state == "Ready!" {
-            statusLabel.text = "State: Ready!"
             let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
             arView.addGestureRecognizer(tapGestureRecognizer)
             addDimensionalDistance()
@@ -171,16 +183,16 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
             })
             self.present(nilDistanceAlert, animated: true)
         } else if distances.count > 3 {
-            let maxDimensionExtendAlert = UIAlertController(title: "Error", message: "Too many dimensional sizes! Maximum three!", preferredStyle: UIAlertControllerStyle.alert)
+            let maxDimensionExtendAlert = UIAlertController(title: "Error", message: "Too many dimensional sizes! Maximum three! Press '-' to remove one dimensional size!", preferredStyle: UIAlertControllerStyle.alert)
             maxDimensionExtendAlert.addAction(UIAlertAction(title: "OK", style: .cancel) { (action:UIAlertAction!) in
                 print("OK")
             })
             self.present(maxDimensionExtendAlert, animated: true)
         } else {
             print(distances)
-            calorieCount = distances.reduce(1, { x, y in x * y})
+            calorieCount = distances.reduce(1, { x, y in x * y}) * Float(caloriesPerUnit!)
             print(calorieCount)
-            calories.text = String(format: "Calories: %.2f", calorieCount)
+            calorieLabel.text = String(format: "Calories: %.2f", calorieCount)
             distances.removeAll()
         }
     }
@@ -190,23 +202,17 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 20)
         label.textColor = UIColor.black
+        label.backgroundColor = UIColor(white: 1, alpha: 0.7)
         label.text = "Type: "
         return label
     }()
     
-    let tracking: UILabel = {
+    let trackingLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 20)
         label.textColor = UIColor.black
+        label.backgroundColor = UIColor(white: 1, alpha: 0.7)
         label.text = "Tracking State:"
-        return label
-    }()
-
-    let statusLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.boldSystemFont(ofSize: 20)
-        label.textColor = UIColor.black
-        label.text = "Status: Not Ready"
         return label
     }()
     
@@ -214,14 +220,16 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 20)
         label.textColor = UIColor.black
+        label.backgroundColor = UIColor(white: 1, alpha: 0.7)
         label.text = "Distance:"
         return label
     }()
     
-    let calories: UILabel = {
+    let calorieLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 20)
         label.textColor = UIColor.black
+        label.backgroundColor = UIColor(white: 1, alpha: 0.7)
         label.text = "Calories:"
         return label
     }()
@@ -238,6 +246,13 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
         view.addSubview(arView)
         arView.fillSuperview()
         
+        let navBar: UINavigationBar = UINavigationBar(frame: CGRect(x: 0, y: 0, width: ScreenSize.width, height: ScreenSize.heigth*0.15))
+        self.view.addSubview(navBar)
+        let navItem = UINavigationItem(title: "Size Measure")
+        let cancelItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.cancel, target: nil, action: #selector(handleCancelButtonTapped))
+        navItem.rightBarButtonItem = cancelItem
+        navBar.setItems([navItem], animated: false)
+    
         view.addSubview(plusButton)
         plusButton.anchor(nil, left: view.safeAreaLayoutGuide.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 24, rightConstant: 0, widthConstant: plusButtonWidth, heightConstant: plusButtonWidth)
         
@@ -251,30 +266,22 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
         resetButton.anchor(nil, left: nil, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.safeAreaLayoutGuide.rightAnchor, topConstant: 0, leftConstant: 0, bottomConstant: 24, rightConstant: 24, widthConstant: resetButtonWidth, heightConstant: resetButtonWidth)
         
         view.addSubview(typeLabel)
-        typeLabel.anchor(view.safeAreaLayoutGuide.topAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 24, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
+        typeLabel.anchor(navBar.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
         
-        view.addSubview(tracking)
-        tracking.anchor(typeLabel.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
-        
-        view.addSubview(statusLabel)
-        statusLabel.anchor(tracking.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
+        view.addSubview(trackingLabel)
+        trackingLabel.anchor(typeLabel.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
         
         view.addSubview(distanceLabel)
-        distanceLabel.anchor(statusLabel.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
+        distanceLabel.anchor(trackingLabel.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
         
-        view.addSubview(calories)
-        calories.anchor(distanceLabel.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
-        
+        view.addSubview(calorieLabel)
+        calorieLabel.anchor(distanceLabel.bottomAnchor, left: view.safeAreaLayoutGuide.leftAnchor, bottom: nil, right: nil, topConstant: 0, leftConstant: 24, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 32)
+ 
         view.addSubview(centerImageView)
         centerImageView.anchorCenterSuperview()
         centerImageView.anchor(nil, left: nil, bottom: nil, right: nil, topConstant: 0, leftConstant: 0, bottomConstant: 0, rightConstant: 0, widthConstant: ScreenSize.width * 0.05, heightConstant: ScreenSize.width * 0.05)
         
-        if food == nil {
-            print("Food is not set!")
-        } else {
-            typeLabel.text = String(food!.type)
-            caloriesPerUnit = food!.calories
-        } 
+        typeLabel.text = String("Type: " + food!.type)
     }
     
     // MARK: AR Session
@@ -283,9 +290,10 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
+        caloriesPerUnit = food!.calories
         configuration.planeDetection = [.horizontal, .vertical]
         arView.session.run(configuration, options: [])
-        arView.debugOptions = ARSCNDebugOptions.showFeaturePoints
+        //arView.debugOptions = ARSCNDebugOptions.showFeaturePoints
         arView.autoenablesDefaultLighting = true
         arView.delegate = self
     }
@@ -308,7 +316,7 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
     
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         DispatchQueue.main.async {
-            self.tracking.text = "Tracking:" + self.getTrackigDescription()
+            self.trackingLabel.text = "Tracking:" + self.getTrackigDescription()
         }
     }
     
@@ -363,7 +371,7 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
         removeNode(named: "floor")
         let floor = createFloor(anchor: anchorPlane)
         node.addChildNode(floor)
-        
+        state = "Ready!"
     }
     
     func renderer(_ renderer: SCNSceneRenderer, didRemove node: SCNNode, for anchor: ARAnchor) {
@@ -371,21 +379,6 @@ class GameViewController: UIViewController, ARSCNViewDelegate, UINavigationContr
         print("Plane Anchor removed with extent:", anchorPlane.extent)
         removeNode(named: "floor")
         state = "Not Ready!"
-    }
-    
-    @IBAction func cancel(_ sender: UIBarButtonItem) {
-        // Depending on style of presentation (modal or push presentation), this view controller needs to be dismissed in two different ways.
-        let isPresentingInSizeMeasurementMode = presentingViewController is UINavigationController
-        
-        if isPresentingInSizeMeasurementMode {
-            dismiss(animated: true, completion: nil)
-        }
-        else if let owningNavigationController = navigationController {
-            owningNavigationController.popViewController(animated: true)
-        }
-        else {
-            fatalError("The SizeMeasurementController is not inside a navigation controller.")
-        }
     }
 }
 

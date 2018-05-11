@@ -19,8 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //
 //    let gameViewController = GameViewController()
 //    window?.rootViewController = gameViewController
-//    UIApplication.shared.isIdleTimerDisabled = true
-    print("2")
+//    UIApplication.shared.isIdleTimerDisabled = true 
     return true
   }
  

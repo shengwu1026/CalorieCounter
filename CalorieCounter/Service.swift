@@ -24,7 +24,7 @@ class Service: NSObject {
         node.simdTransform = modifiedMatrix
         toNode.addChildNode(node)
     }
-    
+     
     static func distance3(fromStartingPositionNode: SCNNode?, onView: ARSCNView, cameraRelativePosition: SCNVector3) -> SCNVector3? {
         guard let startingPosition = fromStartingPositionNode else { return nil }
         guard let currentFrame = onView.session.currentFrame else { return nil }
@@ -39,6 +39,14 @@ class Service: NSObject {
         let yDistance = modifiedMatrix.columns.3.y - startingPosition.position.y
         let zDistance = modifiedMatrix.columns.3.z - startingPosition.position.z
         return SCNVector3(xDistance, yDistance, zDistance)
+    }
+    
+    static func calculateDistance(from: SCNVector3, to: SCNVector3) -> Float {
+        let x = from.x - to.x
+        let y = from.y - to.y
+        let z = from.z - to.z
+        
+        return sqrtf( (x * x) + (y * y) + (z * z))
     }
     
     static func distance(x: Float, y: Float, z: Float) -> Float {

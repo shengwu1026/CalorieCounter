@@ -13,7 +13,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
      This value is passed by `ViewController` in `processImage(_ image: UIImage)`
      */
     var food: Food?
-    var caloriesOfFood = ["pizza": 300.0, "apple_pie": 200.0]
+    var caloriesOfFood = ["miso_soup": 60.0] // 60Cal/100ml
     
     @IBAction func takePicture(_ sender: Any) {
         let picker = UIImagePickerController()
@@ -56,9 +56,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         
         imageView.image = image
         classificationLabel.text = "\(result.classLabel) - \(converted) %"
-        
-        let caloriesPerUnit = 100.0
-        food = Food(type: result.classLabel, calories: caloriesPerUnit)
+        if result.classLabel == "miso_soup" {
+            food = Food(type: result.classLabel, calories: caloriesOfFood[result.classLabel]!)
+        } else {
+            food = Food(type: result.classLabel, calories: 0.0)
+        }
     }
     
     //MARK: - Navigation
@@ -74,7 +76,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 self.present(alert, animated: true, completion: nil)
                 return false
             } else if caloriesOfFood.keys.contains((food?.type)!) {
-                os_log("Food is set", log: OSLog.default, type: .debug)
+                os_log("Food is set. Continue to calculate calories", log: OSLog.default, type: .debug)
                 return true
             } else {
                 let notInDBAlert = UIAlertController(title: "Alert", message: "The information has not been set for this type!", preferredStyle: .alert)
